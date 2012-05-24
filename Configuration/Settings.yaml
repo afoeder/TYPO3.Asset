@@ -1,0 +1,6 @@
+Assets:
+  Collectors:
+    CSS:
+      TYPO3\Asset\Asset\SettingsAsset:
+        Filters:
+          LessFilter: []
