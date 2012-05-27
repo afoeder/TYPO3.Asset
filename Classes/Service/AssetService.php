@@ -50,16 +50,19 @@ class AssetService {
 		return $this->configurationManager->getConfiguration(self::CONFIGURATION_TYPE_ASSETS, "Assets." . $path);
 	}
 
-	public function getAssets($path = 'Bundles.CSS.Bootstrap') {
-		$assetConfiguration = $this->applyAlterations($this->getAssetConfiguration($path));
-		
-		$css = new AssetCollection(array(
-		    new \TYPO3\Asset\Asset\ConfigurationAsset($assetConfiguration, array(new LessphpFilter())),
-		));
-
-		$resource = $this->resourceManager->createResourceFromContent($css->dump(), "Bootstrap.css");
-		$uri = $this->resourcePublisher->publishPersistentResource($resource);
-		echo '<link rel="stylesheet" href="'.$uri.'">';
+	public function getAssetFiles($bundle, $basePath) {
+		$path = $basePath . "." . $bundle;
+		$bundles = $this->configurationManager->getConfiguration(self::CONFIGURATION_TYPE_ASSETS, "Assets." . $basePath);
+		$conf = $bundles[$bundle];
+		if(isset($conf["Dependencies"])){
+			foreach ($conf["Dependencies"] as $dependency) {
+				$conf = array_merge($this->getAssetFiles($dependency, $basePath), $conf);
+			}
+		}
+		if(isset($conf["Files"])){
+			#$this->applyAlterations($bundles[$name])
+		}
+		return $conf;
 	}
 
 	public function applyAlterations($configuration) {
@@ -94,14 +97,12 @@ class AssetService {
 	}
 
 	public function getCssBundleUri($name) {
-		$path = 'Bundles.CSS';
-		$bundles = $this->getAssetConfiguration($path);
-		$assetConfiguration = $this->applyAlterations($bundles[$name]);
-		
-		$css = new AssetCollection(array(
-		    new \TYPO3\Asset\Asset\ConfigurationAsset($assetConfiguration, true, array(new LessphpFilter())),
-		));
+		$files = $this->getAssetFiles($name, 'Bundles.CSS');
 
+		$css = new AssetCollection(array(
+		    new \TYPO3\Asset\Asset\ConfigurationAsset($files["Files"], true, array(new LessphpFilter())),
+		));
+		$name = str_replace(":", ".", $name);
 		$resource = $this->resourceManager->createResourceFromContent($css->dump(), $name . ".css");
 		return $this->resourcePublisher->publishPersistentResource($resource);
 	}
