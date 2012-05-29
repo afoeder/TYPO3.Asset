@@ -140,7 +140,6 @@ class AssetService {
 	}
 
 	public function getCssBundleUris($name) {
-		var_dump($this->compileAssets($name, "CSS"));
 		return $this->compileAssets($name, "CSS");
 	}
 
