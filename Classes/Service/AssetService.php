@@ -29,6 +29,12 @@ class AssetService {
 	const CONFIGURATION_TYPE_ASSETS = 'Settings';
 
 	/**
+	 *
+	 * @var array
+	 **/
+	protected $requiredJs = array();
+
+	/**
 	 * @var \TYPO3\FLOW3\Configuration\ConfigurationManager
 	 * @FLOW3\Inject
 	 */
@@ -46,93 +52,178 @@ class AssetService {
 	 */
 	protected $resourcePublisher;
 
+	/**
+	 * @var \TYPO3\FLOW3\Object\ObjectManagerInterface
+	 * @author Marc Neuhaus <apocalip@gmail.com>
+	 * @FLOW3\Inject
+	 */
+	protected $objectManager;
+	
+	public function compileAssets($name, $namespace, $bundle = array()) {
+		$bundle = $this->getBundle($name, 'Bundles.' . $namespace, $bundle);
+
+		$filters = array();
+		if(isset($bundle["Filters"]))
+			$filters = $this->createFiltersIntances($bundle["Filters"]);
+		
+		$preCompileMerge = isset($bundle["PreCompileMerge"]) ? $bundle["PreCompileMerge"] : false;
+		
+		if($preCompileMerge) {
+			
+			$as = new AssetCollection(array(
+		    	new \TYPO3\Asset\Asset\MergedAsset($bundle["Files"], $filters),
+			));
+
+			$name = str_replace(":", ".", $name);
+			return array( $this->publish($as->dump(), $name . "." . strtolower($namespace)) );
+
+		} else {
+
+			$as = new AssetCollection(array(
+		    	new \TYPO3\Asset\Asset\MergedAsset($bundle["Files"], $filters),
+			));
+
+			$name = str_replace(":", ".", $name);
+			return array( $this->publish($as->dump(), $name . "." . strtolower($namespace)) );
+
+		}
+	}
+
+
 	public function getAssetConfiguration($path) {
 		return $this->configurationManager->getConfiguration(self::CONFIGURATION_TYPE_ASSETS, "Assets." . $path);
 	}
 
-	public function getAssetFiles($bundle, $basePath) {
+	public function getBundle($bundle, $basePath, $overrideSettings = array()) {
 		$path = $basePath . "." . $bundle;
 		$bundles = $this->configurationManager->getConfiguration(self::CONFIGURATION_TYPE_ASSETS, "Assets." . $basePath);
 		$conf = $bundles[$bundle];
+		$conf = array_merge($conf, $overrideSettings);
 		if(isset($conf["Dependencies"])){
 			foreach ($conf["Dependencies"] as $dependency) {
-				$conf = array_merge($this->getAssetFiles($dependency, $basePath), $conf);
+				$conf = array_merge_recursive($this->getBundle($dependency, $basePath), $conf);
 			}
 		}
-		if(isset($conf["Files"])){
-			#$this->applyAlterations($bundles[$name])
-		}
-		return $conf;
-	}
+		if(isset($conf["Alterations"])){
+			foreach ($conf["Alterations"] as $key => $alterations) {
+				if(is_array($alterations)){
 
-	public function applyAlterations($configuration) {
-		foreach ($configuration as $key => $alterations) {
-			if(is_array($alterations)){
-				unset($configuration[$key]);
-				
-				$position = array_search($key, $configuration);
+					foreach ($alterations as $type => $files) {
+						$position = array_search($key, $conf["Files"]);
+						switch ($type) {
+							case 'After':
+								array_splice($conf["Files"], $position + 1, 0, $files);
+								break;
+							
+							case 'Before':
+								array_splice($conf["Files"], $position, 0, $files);
+								break;
 
-				foreach ($alterations as $type => $files) {
-					switch ($type) {
-						case 'After':
-							array_splice($configuration, $position + 1, 0, $files);
-							break;
-						
-						case 'Before':
-							array_splice($configuration, $position, 0, $files);
-							break;
+							case 'Replace':
+							case 'Instead':
+								array_splice($conf["Files"], $position, 1, $files);
 
-						case 'Replace':
-						case 'Instead':
-							array_splice($configuration, $position, 1, $files);
-
-						default:
-							# code...
-							break;
+							default:
+								# code...
+								break;
+						}
 					}
 				}
 			}
 		}
-		return $configuration;
+
+		return $conf;
 	}
 
 	public function getCssBundleUri($name) {
-		$files = $this->getAssetFiles($name, 'Bundles.CSS');
+		$bundle = $this->getBundle($name, 'Bundles.CSS');
 
-		$css = new AssetCollection(array(
-		    new \TYPO3\Asset\Asset\ConfigurationAsset($files["Files"], true, array(new LessphpFilter())),
+		$filters = array();
+		if(isset($bundle["Filters"]))
+			$filters = $this->createFiltersIntances($bundle["Filters"]);
+		
+		$preCompileMerge = isset($bundle["PreCompileMerge"]) ? $bundle["PreCompileMerge"] : false;
+
+		$as = new AssetCollection(array(
+		    new \TYPO3\Asset\Asset\MergedAsset($bundle["Files"], $filters),
 		));
+
 		$name = str_replace(":", ".", $name);
-		$resource = $this->resourceManager->createResourceFromContent($css->dump(), $name . ".css");
-		return $this->resourcePublisher->publishPersistentResource($resource);
+		return $this->publish($as->dump(), $name . ".css");
 	}
 
 	public function getJsBundleUri($name) {
-		$path = 'Bundles.Js';
+		$files = $this->getBundle($name, 'Bundles.Js');
 
-		$am = new AssetManager();
-		$bundles = $this->getAssetConfiguration($path);
+		$filters = array();
+		if(isset($bundle["Filters"]))
+			$filters = $this->createFiltersIntances($bundle["Filters"]);
 
-		foreach ($bundles as $key => $bundle) {
-			$assetConfiguration = $this->applyAlterations($bundles[$key]["Files"]);
-			$collection = array();
-
-			if(isset($bundles[$key]["Dependencies"])){
-				foreach ($bundles[$key]["Dependencies"] as $dependency) {
-					$collection[] = new AssetReference($am, $dependency);
-				}
-			}
-			$collection[] = new \TYPO3\Asset\Asset\ConfigurationAsset($assetConfiguration);
-			
-			$am->set($key, new AssetCollection($collection));
-		}
-
-		$js = new AssetCollection(array(
-		    new AssetReference($am, $name),
+		$as = new AssetCollection(array(
+		    new \TYPO3\Asset\Asset\MergedAsset($files["Files"], $filters),
 		));
 
-		$resource = $this->resourceManager->createResourceFromContent($js->dump(), $name . ".js");
+		$name = str_replace(":", ".", $name);
+		return $this->publish($as->dump(), $name . ".js");
+	}
+
+	public function createFiltersIntances($filters) {
+		$filterInstances = array();
+		foreach ($filters as $filter => $conf) {
+			$filterInstances[] = $this->createFilterInstance($filter, $conf);
+		}
+		return $filterInstances;
+	}
+
+	public function createFilterInstance($filter, $arguments) {
+		switch (count($arguments)) {
+			case 0: return $this->objectManager->get($filter );
+			case 1: return $this->objectManager->get($filter, $arguments[0]);
+			case 2: return $this->objectManager->get($filter, $arguments[0], $arguments[1]);
+			case 3: return $this->objectManager->get($filter, $arguments[0], $arguments[1], $arguments[2]);
+			case 4: return $this->objectManager->get($filter, $arguments[0], $arguments[1], $arguments[2], $arguments[3]);
+			case 5: return $this->objectManager->get($filter, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4]);
+			case 6: return $this->objectManager->get($filter, $arguments[0], $arguments[1], $arguments[2], $arguments[3], $arguments[4], $arguments[5]);
+		}
+	}
+
+	/**
+	 * shortcut to publish some content
+	 * 
+	 * @param  string $content
+	 * @param  string $filename
+	 * @return string $uri
+	 */
+	public function publish($content, $filename) {
+		$resource = $this->resourceManager->createResourceFromContent($content, $filename);
 		return $this->resourcePublisher->publishPersistentResource($resource);
+	}
+
+	/**
+	 * Add an Bundle to the required bundles
+	 * 
+	 * @param string $name   name of the Bundle to add
+	 * @param string $bundle name of the Bundle to add this Bundle to
+	 */
+	public function addRequiredJs($name, $bundle = "TYPO3.Asset:Required") {
+		if(!isset($this->requiredJs[$bundle]))
+			$this->requiredJs[$bundle] = array();
+
+		$this->requiredJs[$bundle][] = $name;
+	}
+
+	/**
+	 * Compile all the Required Scripts up to this point
+	 * @param  string $bundleName name of the Bundle to get the Configuration from
+	 * @return array  an array containing the uris
+	 */
+	public function getRequiredJs($bundleName = "TYPO3.Asset:Required") {
+		$bundle = array();
+
+		if(isset($this->requiredJs[$bundleName]))
+			$bundle["Dependencies"] = $this->requiredJs[$bundleName];
+
+		return $this->compileAssets($bundleName, "Js", $bundle);
 	}
 }
 

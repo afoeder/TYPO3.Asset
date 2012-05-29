@@ -29,7 +29,7 @@ use Assetic\Filter\FilterInterface;
  *
  * @author Kris Wallsmith <kris.wallsmith@gmail.com>
  */
-class ConfigurationAsset extends \Assetic\Asset\BaseAsset {
+class MergedAsset extends \Assetic\Asset\BaseAsset {
    /**
      * @var array
      */
@@ -39,7 +39,6 @@ class ConfigurationAsset extends \Assetic\Asset\BaseAsset {
      * Constructor.
      *
      * @param array $configuration
-     * @param boolean  $mergeFiles Set this to true to merge the specified files before loading them. This is, for example useful to load a bunch of less files which rely on each another
      * @param array  $filters    An array of filters
      * @param string $sourceRoot The source asset root directory
      * @param string $sourcePath The source asset path
@@ -47,9 +46,8 @@ class ConfigurationAsset extends \Assetic\Asset\BaseAsset {
      *
      * @throws InvalidArgumentException If the supplied root doesn't match the source when guessing the path
      */
-    public function __construct($configuration, $mergeFiles = false, $filters = array(), $sourceRoot = null, $sourcePath = null, array $vars = array()) {
+    public function __construct($configuration, $filters = array(), $sourceRoot = null, $sourcePath = null, array $vars = array()) {
         $this->configuration = $configuration;
-        $this->mergeFiles = $mergeFiles;
 
         parent::__construct($filters, $sourceRoot, $sourcePath, $vars);
     }
@@ -63,14 +61,9 @@ class ConfigurationAsset extends \Assetic\Asset\BaseAsset {
                 throw new \RuntimeException(sprintf('The source file "%s" does not exist.', $source));
             }
 
-            if($this->mergeFiles)
-                $data.= file_get_contents($source) . "\n";
-            else
-                $this->doLoad(file_get_contents($source), $additionalFilter);
+            $data.= file_get_contents($source) . "\n";
         }
-
-        if($this->mergeFiles)
-            $this->doLoad($data, $additionalFilter);
+        $this->doLoad($data, $additionalFilter);
     }
 
     public function getLastModified() {

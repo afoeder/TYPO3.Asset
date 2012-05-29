@@ -1,6 +1,5 @@
 Assets:
-  Collectors:
-    CSS:
-      TYPO3\Asset\Asset\SettingsAsset:
-        Filters:
-          LessFilter: []
+  Bundles:
+    Js:
+      'TYPO3.Asset:Required':
+        PreCompileMerge: true
