@@ -78,13 +78,17 @@ class AssetService {
 			return array( $this->publish($as->dump(), $name . "." . strtolower($namespace)) );
 
 		} else {
-
-			$as = new AssetCollection(array(
-		    	new \TYPO3\Asset\Asset\MergedAsset($bundle["Files"], $filters),
-			));
-
-			$name = str_replace(":", ".", $name);
-			return array( $this->publish($as->dump(), $name . "." . strtolower($namespace)) );
+			$assets = array();
+			foreach ($bundle["Files"] as $file) {
+				$assets[] = new \Assetic\Asset\FileAsset($file, $filters);
+			}
+			$as = new AssetCollection($assets);
+			
+			$uris = array();
+			foreach ($as as $leaf) {
+				$uris[] = $this->publish($leaf->dump(), $leaf->getSourcePath());
+			}
+			return $uris;
 
 		}
 	}
@@ -135,36 +139,13 @@ class AssetService {
 		return $conf;
 	}
 
-	public function getCssBundleUri($name) {
-		$bundle = $this->getBundle($name, 'Bundles.CSS');
-
-		$filters = array();
-		if(isset($bundle["Filters"]))
-			$filters = $this->createFiltersIntances($bundle["Filters"]);
-		
-		$preCompileMerge = isset($bundle["PreCompileMerge"]) ? $bundle["PreCompileMerge"] : false;
-
-		$as = new AssetCollection(array(
-		    new \TYPO3\Asset\Asset\MergedAsset($bundle["Files"], $filters),
-		));
-
-		$name = str_replace(":", ".", $name);
-		return $this->publish($as->dump(), $name . ".css");
+	public function getCssBundleUris($name) {
+		var_dump($this->compileAssets($name, "CSS"));
+		return $this->compileAssets($name, "CSS");
 	}
 
-	public function getJsBundleUri($name) {
-		$files = $this->getBundle($name, 'Bundles.Js');
-
-		$filters = array();
-		if(isset($bundle["Filters"]))
-			$filters = $this->createFiltersIntances($bundle["Filters"]);
-
-		$as = new AssetCollection(array(
-		    new \TYPO3\Asset\Asset\MergedAsset($files["Files"], $filters),
-		));
-
-		$name = str_replace(":", ".", $name);
-		return $this->publish($as->dump(), $name . ".js");
+	public function getJsBundleUris($name) {
+		return $this->compileAssets($name, "Js");
 	}
 
 	public function createFiltersIntances($filters) {

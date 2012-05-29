@@ -1,5 +1,5 @@
 Assets:
   Bundles:
     Js:
-      'TYPO3.Asset:Required':
-        PreCompileMerge: true
+      'TYPO3.Asset:Required': []
+        #PreCompileMerge: true

@@ -32,7 +32,7 @@ class FilesAsset extends \Assetic\Asset\AssetCollection {
      */
     public function __construct($files, $filters = array(), $root = null, array $vars = array())
     {
-        $this->file = (array) $file;
+        $this->files = (array) $files;
         $this->initialized = false;
 
         parent::__construct(array(), $filters, $root, $vars);
@@ -95,7 +95,7 @@ class FilesAsset extends \Assetic\Asset\AssetCollection {
     private function initialize()
     {
         foreach ($this->files as $file) {
-            $this->add(new FileAsset($file, array(), $this->getSourceRoot()));
+            $this->add(new \Assetic\Asset\FileAsset($file, array(), $this->getSourceRoot()));
         }
 
         $this->initialized = true;

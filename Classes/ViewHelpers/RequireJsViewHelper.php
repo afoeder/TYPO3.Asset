@@ -57,7 +57,7 @@ class RequireJsViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractTagBasedV
 				$this->tag->addAttribute("type", "text/javascript");
 				$this->tag->addAttribute("src", $uri);
 				$this->tag->forceClosingTag(true);
-				$output.= $this->tag->render();
+				$output.= $this->tag->render() . chr(10);
 			}
 			return $output;
 		}else{

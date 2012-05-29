@@ -49,11 +49,15 @@ class JsViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractTagBasedViewHelp
 	 * @api
 	 */
 	public function render($name) {
-		$uri = $this->assetService->getJsBundleUri($name);
-		$this->tag->addAttribute("type", "text/javascript");
-		$this->tag->addAttribute("src", $uri);
-		$this->tag->forceClosingTag(true);
-		return $this->tag->render();
+		$uris = $this->assetService->getJsBundleUris($name);
+		$output = "";
+		foreach ($uris as $uri) {
+			$this->tag->addAttribute("type", "text/javascript");
+			$this->tag->addAttribute("src", $uri);
+			$this->tag->forceClosingTag(true);
+			$output.= $this->tag->render() . chr(10);
+		}
+		return $output;
 	}
 }
 

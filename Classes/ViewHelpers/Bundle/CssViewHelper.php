@@ -48,10 +48,14 @@ class CssViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractTagBasedViewHel
 	 * @api
 	 */
 	public function render($name) {
-		$uri = $this->assetService->getCssBundleUri($name);
-		$this->tag->addAttribute("rel", "stylesheet");
-		$this->tag->addAttribute("href", $uri);
-		return $this->tag->render();
+		$uris = $this->assetService->getCssBundleUris($name);
+		$output = "";
+		foreach ($uris as $uri) {
+			$this->tag->addAttribute("rel", "stylesheet");
+			$this->tag->addAttribute("href", $uri);
+			$output.= $this->tag->render() . chr(10);
+		}
+		return $output;
 	}
 }
 
