@@ -5,6 +5,7 @@ First Draft to use Assetic for Asset Management
 - Assetic: https://github.com/afoeder/Assetic-Package
 
 ## Examples:
+Demo Package: https://github.com/mneuhaus/Demo.Asset
 
 ```yaml
 Assets:
