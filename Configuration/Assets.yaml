@@ -1,0 +1,4 @@
+Bundles:
+  Js:
+    'TYPO3.Asset:Required': []
+      #PreCompileMerge: true
