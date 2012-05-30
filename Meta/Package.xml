@@ -7,6 +7,7 @@
     <constraints>
         <depends>
             <package>Assetic</package>
+            <package>Symfony.Component.Process</package>
         </depends>
         <conflicts/>
         <suggests/>

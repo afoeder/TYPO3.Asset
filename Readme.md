@@ -3,6 +3,7 @@ First Draft to use Assetic for Asset Management
 
 ## Requirements:
 - Assetic: https://github.com/afoeder/Assetic-Package
+- Symfony.Component.Process: https://github.com/afoeder/Symfony.Component.Process
 
 ## Examples:
 Demo Package: https://github.com/mneuhaus/Demo.Asset
