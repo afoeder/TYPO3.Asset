@@ -1,1 +1,17 @@
-{"name":"typo3\/asset","type":"typo3-flow-package","description":"","version":"","require":{"typo3\/flow":"*"},"autoload":{"psr-0":{"TYPO3\\Asset":"Classes"}}}
+{
+	"name":"typo3\/asset",
+	"type":"typo3-flow-package",
+	"description":"Assetic integration for TYPO3 Flow",
+	"version":"",
+	"require": {
+		"typo3\/flow": "*",
+		"symfony\/process": "*",
+		"kriswallsmith\/assetic": "*",
+		"leafo\/lessphp": "*"
+	},
+	"autoload": {
+		"psr-0": {
+			"TYPO3\\Asset":"Classes"
+		}
+	}
+}
