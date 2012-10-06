@@ -6,8 +6,8 @@
 	"require": {
 		"typo3\/flow": "*",
 		"symfony\/process": "*",
-		"kriswallsmith\/assetic": "*",
-		"leafo\/lessphp": "*"
+		"leafo\/lessphp": "*",
+		"kriswallsmith\/assetic": "*"
 	},
 	"autoload": {
 		"psr-0": {

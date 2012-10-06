@@ -1,0 +1,6 @@
+TYPO3:
+  Flow:
+    object:
+      excludeClasses:
+       'kriswallsmith.assetic' : ['Extension\\.*', 'functions']
+       'symfony.process' : ['Symfony\\Component\\Process\\Tests\\.*']
