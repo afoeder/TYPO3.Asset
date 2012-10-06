@@ -11,22 +11,22 @@ namespace TYPO3\Asset\Configuration;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
-use TYPO3\FLOW3\Utility\Arrays;
+use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Arrays;
 
 /**
  * A general purpose configuration manager
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  * @api
  */
-class ConfigurationManager extends \TYPO3\FLOW3\Configuration\ConfigurationManager {
+class ConfigurationManager extends \TYPO3\Flow\Configuration\ConfigurationManager {
 
 	const CONFIGURATION_TYPE_ASSETS = 'Assets';
 
-	public function __construct(\TYPO3\FLOW3\Object\ObjectManager $objectManager) {
+	public function __construct(\TYPO3\Flow\Object\ObjectManager $objectManager) {
 		parent::__construct($objectManager->getContext());
-		$this->packages = $objectManager->get("TYPO3\FLOW3\Package\PackageManagerInterface")->getActivePackages();
+		$this->packages = $objectManager->get("TYPO3\Flow\Package\PackageManagerInterface")->getActivePackages();
 	}
 
 	/**
@@ -50,7 +50,7 @@ class ConfigurationManager extends \TYPO3\FLOW3\Configuration\ConfigurationManag
 	 * @param string $configurationType The kind of configuration to fetch - must be one of the CONFIGURATION_TYPE_* constants
 	 * @param string $packageKey The package key to fetch configuration for.
 	 * @return array The configuration
-	 * @throws \TYPO3\FLOW3\Configuration\Exception\InvalidConfigurationTypeException on invalid configuration types
+	 * @throws \TYPO3\Flow\Configuration\Exception\InvalidConfigurationTypeException on invalid configuration types
 	 */
 	public function getConfiguration($configurationType, $packageKey = NULL) {
 		$configuration = array();
@@ -85,7 +85,7 @@ class ConfigurationManager extends \TYPO3\FLOW3\Configuration\ConfigurationManag
 	 * @param string $configurationType The kind of configuration to load - must be one of the CONFIGURATION_TYPE_* constants
 	 * @param array $packages An array of Package objects (indexed by package key) to consider
 	 * @return void
-	 * @throws \TYPO3\FLOW3\Configuration\Exception\InvalidConfigurationTypeException
+	 * @throws \TYPO3\Flow\Configuration\Exception\InvalidConfigurationTypeException
 	 */
 	protected function loadConfiguration($configurationType, array $packages) {
 		$this->cacheNeedsUpdate = TRUE;
@@ -94,10 +94,10 @@ class ConfigurationManager extends \TYPO3\FLOW3\Configuration\ConfigurationManag
 			case self::CONFIGURATION_TYPE_ASSETS :
 
 					// Make sure that the FLOW3 package is the first item of the packages array:
-				if (isset($packages['TYPO3.FLOW3'])) {
-					$flow3Package = $packages['TYPO3.FLOW3'];
-					unset($packages['TYPO3.FLOW3']);
-					$packages = array_merge(array('TYPO3.FLOW3' => $flow3Package), $packages);
+				if (isset($packages['TYPO3.Flow'])) {
+					$flow3Package = $packages['TYPO3.Flow'];
+					unset($packages['TYPO3.Flow']);
+					$packages = array_merge(array('TYPO3.Flow' => $flow3Package), $packages);
 					unset($flow3Package);
 				}
 
@@ -108,13 +108,13 @@ class ConfigurationManager extends \TYPO3\FLOW3\Configuration\ConfigurationManag
 					}
 					$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load($package->getConfigurationPath() . self::CONFIGURATION_TYPE_ASSETS));
 				}
-				$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load(FLOW3_PATH_CONFIGURATION . self::CONFIGURATION_TYPE_ASSETS));
+				$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load(FLOW_PATH_CONFIGURATION . self::CONFIGURATION_TYPE_ASSETS));
 
 				foreach ($this->orderedListOfContextNames as $contextName) {
 					foreach ($packages as $package) {
 						$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load($package->getConfigurationPath() . $contextName . '/' . self::CONFIGURATION_TYPE_ASSETS));
 					}
-					$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load(FLOW3_PATH_CONFIGURATION . $contextName . '/' . self::CONFIGURATION_TYPE_ASSETS));
+					$settings = Arrays::arrayMergeRecursiveOverrule($settings, $this->configurationSource->load(FLOW_PATH_CONFIGURATION . $contextName . '/' . self::CONFIGURATION_TYPE_ASSETS));
 				}
 
 				if ($this->configurations[self::CONFIGURATION_TYPE_ASSETS] !== array()) {

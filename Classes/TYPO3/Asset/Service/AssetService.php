@@ -11,7 +11,7 @@ namespace TYPO3\Asset\Service;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 use Assetic\Asset\AssetCollection;
 use Assetic\Filter\LessphpFilter;
@@ -22,7 +22,7 @@ use Assetic\Asset\AssetReference;
  * A Service which provides further information about a given locale
  * and the current state of the i18n and L10n components.
  *
- * @FLOW3\Scope("singleton")
+ * @Flow\Scope("singleton")
  * @api
  */
 class AssetService {
@@ -36,26 +36,26 @@ class AssetService {
 
     /**
      * @var \TYPO3\Asset\Configuration\ConfigurationManager
-     * @FLOW3\Inject
+     * @Flow\Inject
      */
     protected $configurationManager;
 
     /**
-     * @var \TYPO3\FLOW3\Resource\ResourceManager
-     * @FLOW3\Inject
+     * @var \TYPO3\Flow\Resource\ResourceManager
+     * @Flow\Inject
      */
     protected $resourceManager;
 
     /**
-     * @var \TYPO3\FLOW3\Resource\Publishing\ResourcePublisher
-     * @FLOW3\Inject
+     * @var \TYPO3\Flow\Resource\Publishing\ResourcePublisher
+     * @Flow\Inject
      */
     protected $resourcePublisher;
 
     /**
-     * @var \TYPO3\FLOW3\Object\ObjectManagerInterface
+     * @var \TYPO3\Flow\Object\ObjectManagerInterface
      * @author Marc Neuhaus <apocalip@gmail.com>
-     * @FLOW3\Inject
+     * @Flow\Inject
      */
     protected $objectManager;
 

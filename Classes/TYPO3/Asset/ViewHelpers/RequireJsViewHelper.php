@@ -11,7 +11,7 @@ namespace TYPO3\Asset\ViewHelpers;
  * The TYPO3 project - inspiring people to share!                         *
  *                                                                        */
 
-use TYPO3\FLOW3\Annotations as FLOW3;
+use TYPO3\Flow\Annotations as Flow;
 
 /**
  *
@@ -20,7 +20,7 @@ use TYPO3\FLOW3\Annotations as FLOW3;
 class RequireJsViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractTagBasedViewHelper {
 	/**
 	 * @var TYPO3\Asset\Service\AssetService
-	 * @FLOW3\Inject
+	 * @Flow\Inject
 	 */
 	protected $assetService;
 
