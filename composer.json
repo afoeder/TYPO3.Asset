@@ -5,7 +5,6 @@
 	"version":"",
 	"require": {
 		"typo3\/flow": "*",
-		"symfony\/process": "*",
 		"leafo\/lessphp": "*",
 		"kriswallsmith\/assetic": "*"
 	},
