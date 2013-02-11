@@ -168,7 +168,7 @@ class AssetService {
      * @return array
      */
     public function getCssBundleUris($name) {
-        return $this->compileAssets($name, "CSS");
+        return $this->compileAssets($name, "Css");
     }
 
     /**
