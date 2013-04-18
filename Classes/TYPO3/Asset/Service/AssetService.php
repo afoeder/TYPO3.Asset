@@ -89,7 +89,7 @@ class AssetService {
 			));
 
 			$name = str_replace(':', '.', $name);
-			return array($this->publish($as->dump(), $name));
+			return array($this->publish($as->dump(), $name . '.' . strtolower($namespace)));
 
 		} else {
 			$assets = array();
@@ -100,7 +100,7 @@ class AssetService {
 
 			$uris = array();
 			foreach ($as as $leaf) {
-				$uris[] = $this->publish($leaf->dump(), $leaf->getSourcePath());
+				$uris[] = $this->publish($leaf->dump(), pathinfo($leaf->getSourcePath(), PATHINFO_FILENAME) . '.' . strtolower($namespace));
 			}
 			return $uris;
 
