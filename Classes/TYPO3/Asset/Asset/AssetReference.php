@@ -82,8 +82,19 @@ class AssetReference implements \Assetic\Asset\AssetInterface {
         return $this->callAsset(__FUNCTION__);
     }
 
-    public function getTargetPath()
-    {
+    /**
+     * Returns the asset's source directory.
+     *
+     * The source directory is the directory the asset was located in
+     * and can be used to resolve references relative to an asset.
+     *
+     * @return string|null The asset's source directory
+     */
+    public function getSourceDirectory() {
+        return $this->callAsset(__FUNCTION__);
+    }
+
+    public function getTargetPath() {
         return $this->callAsset(__FUNCTION__);
     }
 
