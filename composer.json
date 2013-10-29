@@ -6,6 +6,7 @@
 	"require": {
 		"typo3\/flow": "*",
 		"leafo\/lessphp": "*",
+        "leafo/scssphp": "*",
 		"kriswallsmith\/assetic": "*"
 	},
 	"autoload": {

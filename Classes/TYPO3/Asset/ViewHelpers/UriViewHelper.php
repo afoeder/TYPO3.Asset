@@ -28,6 +28,12 @@ use TYPO3\Flow\Error\Exception;
  */
 class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
     /**
+     * @var TYPO3\Flow\Cache\CacheManager
+     * @Flow\Inject
+     */
+    protected $cacheManager;
+
+    /**
      * @var \TYPO3\Flow\Utility\Environment
      * @Flow\Inject
      */
@@ -57,7 +63,7 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
      * @api
      */
     public function render($path = NULL, $package = NULL, $debug = false, $output = NULL, $filters = NULL) {
-
+        $start = microtime();
         if ($package === NULL) {
             $package = $this->controllerContext->getRequest()->getControllerPackageKey();
         }
@@ -68,14 +74,18 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
         $outputPath = $packageResourcePath . 'Public/' . $output;
 
         $lastModified = $this->getLastModified($path);
-        if ($lastModified > filemtime($outputPath)) {
+        if (!file_exists($outputPath) || $lastModified > filemtime($outputPath)) {
             $this->requireDependencies();
+            file_put_contents($outputPath, $this->codekitMerge($path));
 
             $assetManager = new AssetManager();
             $filterManager = new FilterManager();
 
             $filterManager->set('less', new Filter\LessphpFilter());
             $filterManager->set('sass', new Filter\Sass\SassFilter());
+            $filterManager->set('scss', new Filter\Sass\ScssFilter());
+            $filterManager->set('compass', new Filter\Sass\ScssFilter());
+            $filterManager->set('scssphp', new Filter\ScssphpFilter());
 
             $root = FLOW_PATH_ROOT;
             $buildPath = $this->environment->getPathToTemporaryDirectory() . 'Assetic/';
@@ -87,38 +97,97 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
             $factory->setDebug($debug);
             $factory->addWorker(new CacheBustingWorker());
 
-            $filters = explode(',', $filters);
-            $asset = $factory->createAsset(array($path), $filters);
-            file_put_contents($outputPath, $asset->dump());
+            if ($filters !== NULL) {
+                $filters = explode(',', $filters);
+                try {
+                    $asset = $factory->createAsset(array($outputPath), $filters);
+                    file_put_contents($outputPath, $asset->dump());
+                } catch(\Exception $e) {
+                    unlink($outputPath);
+                    throw $e;
+                }
+            }
         }
         return $this->resourcePublisher->getStaticResourcesWebBaseUri() . 'Packages/' . $package . '/' . $output;
     }
 
-    public function getLastModified($path) {
-        $lastModified = 0;
-        foreach ($this->getFiles($path) as $file) {
-            $lastModified = max($lastModified, filemtime($file));
+    public function getLastModified($path, $cacheFlush = FALSE) {
+        $cache = $this->cacheManager->getCache('TYPO3_Asset_FileCache');
+        $identifier = sha1('Files: ' . $path);
+        $modificationTimes = $cache->get($identifier);
+
+        if ($modificationTimes === FALSE || $cacheFlush === TRUE) {
+            $files = $this->getFiles($path);
+            $modificationTimes = array();
+            foreach ($files as $file) {
+                $modificationTimes[$file] = filemtime($file);
+            }
+            $cache->set($identifier, $modificationTimes);
+        } else {
+            foreach ($modificationTimes as $file => $modificationTime) {
+                if (filemtime($file) !== $modificationTime) {
+                    return $this->getLastModified($path, TRUE);
+                }
+            }
         }
-        return $lastModified;
+
+        return max($modificationTimes);
     }
 
     public function getFiles($file, $files = array()) {
         $files[]= $file;
         $extension = pathinfo($file, PATHINFO_EXTENSION);
+        $content = file_get_contents($file);
+
+        preg_match_all('/@codekit-(append|prepend)[ "\']*([^\'"]*)/', $content, $matches);
+        if (count($matches[2]) > 0) {
+            foreach ($matches[2] as $importedFile) {
+                $importedFilePath = realpath(dirname($file) . '/' . $importedFile);
+                if ($importedFilePath === FALSE) {
+                    throw new Exception('Asset could not be found
+                        Referenced file: ' . $importedFile . '
+                        Source File: ' . str_replace(FLOW_PATH_ROOT, '', $file) . '
+                    ');
+                }
+                $files = $this->getFiles($importedFilePath, $files);
+            }
+        }
+
         switch ($extension) {
             case 'less':
-                $content = file_get_contents($file);
                 preg_match_all('/@import[ "\'\(]*([^"\']*)[\)"\';]*/', $content, $matches);
-                foreach ($matches[1] as $importedFile) {
-                    $importedFilePath = realpath(dirname($file) . '/' . $importedFile);
-                    if ($importedFilePath === FALSE) {
-                        throw new Exception('Asset could not be found
-                            Referenced file: ' . $importedFile . '
-                            Source File: ' . str_replace(FLOW_PATH_ROOT, '', $file) . '
-                        ');
+                if (count($matches[1]) > 0) {
+                    foreach ($matches[1] as $importedFile) {
+                        $importedFilePath = realpath(dirname($file) . '/' . $importedFile);
+                        if ($importedFilePath === FALSE) {
+                            throw new Exception('Asset could not be found
+                                Referenced file: ' . $importedFile . '
+                                Source File: ' . str_replace(FLOW_PATH_ROOT, '', $file) . '
+                            ');
+                        }
+                        $files = $this->getFiles($importedFilePath, $files);
                     }
-                    $files = $this->getFiles($importedFilePath, $files);
                 }
+                break;
+
+            case 'sass':
+            case 'scss':
+                preg_match_all('/@import[ "\'\(]*([^"\']*)[\)"\';]*/', $content, $matches);
+                if (count($matches[1]) > 0) {
+                    foreach ($matches[1] as $importedFile) {
+                        $importedFileWithoutExtension = str_replace('.' . $extension, '', $importedFile);
+                        $importedFilePath1 = realpath(dirname($file) . '/_' . $importedFileWithoutExtension . '.' . $extension);
+                        $importedFilePath2 = realpath(dirname($file) . '/' . $importedFileWithoutExtension . '.' . $extension);
+                        if ($importedFilePath1 === FALSE && $importedFilePath2 === FALSE) {
+                            throw new Exception('Asset could not be found
+                                Referenced file: ' . $importedFile . '
+                                Source File: ' . str_replace(FLOW_PATH_ROOT, '', $file) . '
+                            ');
+                        }
+                        $files = $this->getFiles($importedFilePath1 == FALSE ? $importedFilePath2 : $importedFilePath1, $files);
+                    }
+                }
+                break;
                 break;
 
             default:
@@ -127,8 +196,30 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
         return $files;
     }
 
+    public function codekitMerge($file) {
+        $content = file_get_contents($file);
+        $prepend = '';
+        $append = '';
+        preg_match_all('/@codekit-(append|prepend)[ "\']*([^\'"]*)/', $content, $matches);
+        if (count($matches[2]) > 0) {
+            foreach ($matches[2] as $key => $importedFile) {
+                $importedFilePath = realpath(dirname($file) . '/' . $importedFile);
+                if ($matches[1][$key] === 'prepend') {
+                    $prepend.= $this->codekitMerge($importedFilePath);
+                }
+                if ($matches[1][$key] === 'append') {
+                    $append.= $this->codekitMerge($importedFilePath);
+                }
+            }
+        }
+        return $prepend . $content . $append;
+    }
+
     public function requireDependencies() {
         $lessphpPath = $this->packageManager->getPackage('leafo.lessphp')->getPackagePath();
         require_once($lessphpPath . 'lessc.inc.php');
+
+        $scssphpPath = $this->packageManager->getPackage('leafo.scssphp')->getPackagePath();
+        require_once($scssphpPath . 'scss.inc.php');
     }
 }
