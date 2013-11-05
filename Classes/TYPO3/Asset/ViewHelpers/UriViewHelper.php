@@ -136,7 +136,7 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
     public function getFiles($file, $files = array()) {
         $files[]= $file;
-        $extension = pathinfo($file, PATHINFO_EXTENSION);
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $content = file_get_contents($file);
 
         preg_match_all('/@codekit-(append|prepend)[ "\']*([^\'"]*)/', $content, $matches);
