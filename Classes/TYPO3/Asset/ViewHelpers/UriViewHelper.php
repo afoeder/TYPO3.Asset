@@ -116,6 +116,7 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
         $identifier = sha1('Files: ' . $path);
         $modificationTimes = $cache->get($identifier);
 
+        $cacheFlush = TRUE;
         if ($modificationTimes === FALSE || $cacheFlush === TRUE) {
             $files = $this->getFiles($path);
             $modificationTimes = array();
@@ -138,6 +139,8 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
         $files[]= $file;
         $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         $content = file_get_contents($file);
+
+        $this->checkCaseSensitivity($file);
 
         preg_match_all('/@codekit-(append|prepend)[ "\']*([^\'"]*)/', $content, $matches);
         if (count($matches[2]) > 0) {
@@ -221,5 +224,27 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
 
         $scssphpPath = $this->packageManager->getPackage('leafo.scssphp')->getPackagePath();
         require_once($scssphpPath . 'scss.inc.php');
+    }
+
+    public function checkCaseSensitivity($file) {
+        $parts = explode('/', $file);
+        $realPath = '/' . array_shift($parts);
+        foreach ($parts as $part) {
+            $paths = scandir($realPath);
+            foreach ($paths as $path) {
+                if (strtolower($path) === strtolower($part)) {
+                    $realPath.= '/' . $path;
+                    break;
+                }
+            }
+        }
+        $realPath = '/' . ltrim($realPath, '/');
+
+        if ($realPath !== $file) {
+            throw new Exception('The Asset you\'re trying to reference has an case sensitivity issue
+                referenced files vs real filename:
+                ' . str_replace(FLOW_PATH_ROOT, '', $file) . '
+                ' . str_replace(FLOW_PATH_ROOT, '', $realPath));
+        }
     }
 }
