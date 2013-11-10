@@ -68,7 +68,23 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
             $package = $this->controllerContext->getRequest()->getControllerPackageKey();
         }
 
+        if ($filters === NULL) {
+            return $this->resourcePublisher->getStaticResourcesWebBaseUri() . 'Packages/' . $package . '/' . $path;
+        }
+
         $packageResourcePath = $this->packageManager->getPackage($package)->getResourcesPath();
+
+        if ($output === NULL) {
+            switch (pathinfo($path, PATHINFO_EXTENSION)) {
+                case 'less':
+                case 'scss':
+                case 'sass':
+                case 'compass':
+                case 'scssphp':
+                        $output = dirname($path) . '/' . pathinfo($path, PATHINFO_FILENAME) . '.css';
+                    break;
+            }
+        }
 
         $path = $packageResourcePath . 'Public/' . $path;
         $outputPath = $packageResourcePath . 'Public/' . $output;
