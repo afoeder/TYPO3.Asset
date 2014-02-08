@@ -177,6 +177,9 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
                 preg_match_all('/@import[ "\'\(]*([^"\']*)[\)"\';]*/', $content, $matches);
                 if (count($matches[1]) > 0) {
                     foreach ($matches[1] as $importedFile) {
+                        if (pathinfo($importedFile, PATHINFO_EXTENSION) === '') {
+                            $importedFile .= '.less';
+                        }
                         $importedFilePath = realpath(dirname($file) . '/' . $importedFile);
                         if ($importedFilePath === FALSE) {
                             throw new Exception('Asset could not be found
