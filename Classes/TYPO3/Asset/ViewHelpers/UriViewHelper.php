@@ -238,7 +238,7 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
     }
 
     public function requireDependencies() {
-        $lessphpPath = $this->packageManager->getPackage('leafo.lessphp')->getPackagePath();
+        $lessphpPath = $this->packageManager->getPackage('oyejorge.less.php')->getPackagePath();
         require_once($lessphpPath . 'lessc.inc.php');
 
         $scssphpPath = $this->packageManager->getPackage('leafo.scssphp')->getPackagePath();

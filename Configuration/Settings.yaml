@@ -5,3 +5,4 @@ TYPO3:
        'kriswallsmith.assetic' : ['Extension\\.*', 'functions']
        'symfony.process' : ['Symfony\\Component\\Process\\Tests\\.*']
        'twig.twig' : ['.*']
+       'oyejorge.less.php' : ['.*']

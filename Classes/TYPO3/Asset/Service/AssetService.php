@@ -61,7 +61,7 @@ class AssetService {
 
 	public function __construct(\TYPO3\Flow\Object\ObjectManager $objectManager) {
 		$packageManager = $objectManager->get('TYPO3\Flow\Package\PackageManagerInterface');
-		$lessphpPackage = $packageManager->getPackage('leafo.lessphp');
+		$lessphpPackage = $packageManager->getPackage('oyejorge.less.php');
 		$lessphpPath = $lessphpPackage->getPackagePath();
 		require_once($lessphpPath . 'lessc.inc.php');
 	}
