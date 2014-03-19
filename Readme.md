@@ -1,6 +1,23 @@
 # TYPO3.Asset
 First Draft to use Assetic for Asset Management
 
+## Installation
+
+add this repository to your composer.json
+
+    {
+        "repositories": [
+            {
+                "type": "vcs",
+                "url": "https://github.com/afoeder/TYPO3.Asset.git"
+            }
+        ]
+    }
+
+and then add import this package by: 
+
+    composer require typo3/asset
+
 ## Requirements:
 - Assetic: https://github.com/kriswallsmith/assetic
   - Symfony.Component.Process: https://github.com/symfony/Process
