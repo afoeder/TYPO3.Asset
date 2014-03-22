@@ -72,7 +72,6 @@ class AssetCache extends \Assetic\Asset\AssetCache {
 
     public function hasChanged() {
         $cacheKey = self::getCacheKey($this->asset, NULL, 'load');
-        var_dump($cacheKey);
         return $this->cache->has($cacheKey) === FALSE;
 
     }
