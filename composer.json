@@ -5,9 +5,11 @@
 	"version":"",
 	"require": {
 		"typo3\/flow": "*",
-        "leafo/scssphp": "*",
-		"kriswallsmith\/assetic": "*",
-        "oyejorge/less.php": "*"
+		"kriswallsmith\/assetic": "*"
+	},
+	"suggest": {
+        	"leafo/scssphp": "For SCSS Compiling",
+        	"oyejorge/less.php": "For LESS Compiling"
 	},
 	"autoload": {
 		"psr-0": {
