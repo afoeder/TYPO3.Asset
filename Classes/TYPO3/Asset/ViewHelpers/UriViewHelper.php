@@ -238,11 +238,15 @@ class UriViewHelper extends \TYPO3\Fluid\Core\ViewHelper\AbstractViewHelper {
     }
 
     public function requireDependencies() {
-        $lessphpPath = $this->packageManager->getPackage('oyejorge.less.php')->getPackagePath();
-        require_once($lessphpPath . 'lessc.inc.php');
+        if ($this->packageManager->isPackageActive('oyejorge.less.php') === TRUE) {
+            $lessphpPath = $this->packageManager->getPackage('oyejorge.less.php')->getPackagePath();
+            require_once($lessphpPath . 'lessc.inc.php');
+        }
 
-        $scssphpPath = $this->packageManager->getPackage('leafo.scssphp')->getPackagePath();
-        require_once($scssphpPath . 'scss.inc.php');
+        if ($this->packageManager->isPackageActive('leafo.scssphp') === TRUE) {
+            $scssphpPath = $this->packageManager->getPackage('leafo.scssphp')->getPackagePath();
+            require_once($scssphpPath . 'scss.inc.php');
+        }
     }
 
     public function checkCaseSensitivity($file) {
