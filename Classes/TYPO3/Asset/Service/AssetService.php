@@ -17,6 +17,7 @@ use Assetic\Asset\AssetCollection;
 use Assetic\Filter\LessphpFilter;
 use TYPO3\Asset\Asset\AssetManager;
 use Assetic\Asset\AssetReference;
+use TYPO3\Flow\Persistence\PersistenceManagerInterface;
 
 /**
  * A Service which provides further information about a given locale
@@ -58,6 +59,12 @@ class AssetService {
 	 * @Flow\Inject
 	 */
 	protected $objectManager;
+	
+	/**
+	 * @Flow\Inject
+	 * @var PersistenceManagerInterface
+	 */
+	protected $persistenceManager;
 
 	public function __construct(\TYPO3\Flow\Object\ObjectManager $objectManager) {
 		$packageManager = $objectManager->get('TYPO3\Flow\Package\PackageManagerInterface');
@@ -224,6 +231,7 @@ class AssetService {
 	 */
 	public function publish($content, $filename) {
 		$resource = $this->resourceManager->createResourceFromContent($content, $filename);
+		$this->persistenceManager->whitelistObject($resource);
 		return $this->resourcePublisher->publishPersistentResource($resource);
 	}
 
