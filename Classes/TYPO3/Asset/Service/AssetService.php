@@ -232,6 +232,7 @@ class AssetService {
 	public function publish($content, $filename) {
 		$resource = $this->resourceManager->createResourceFromContent($content, $filename);
 		$this->persistenceManager->whitelistObject($resource);
+		$this->persistenceManager->whitelistObject($resource->getResourcePointer());
 		return $this->resourcePublisher->publishPersistentResource($resource);
 	}
 
